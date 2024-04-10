@@ -15,10 +15,19 @@ public class PlayerController : MonoBehaviour
 {
     private Animator animator;
     private Vector3 move;
+    private CharacterController character;
+    private float runSpeed = 5;
+    private float walkSpeed = 3f;
+    [SerializeField] private Animator door;
+    private float verticalVelocity;
+    private float gravity = 9.8f;
+    private float jumpForce = 5.0f;
+    private bool canJump;
 
     void Start()
     {
         animator = GetComponent<Animator>();
+        character = GetComponent<CharacterController>();
     }
 
     // Update is called once per frame
@@ -32,11 +41,13 @@ public class PlayerController : MonoBehaviour
         {
             if (Input.GetKey(KeyCode.LeftShift))
             {
+                character.Move(move * runSpeed * Time.deltaTime);
                 animator.SetBool("isWalking", false);
                 animator.SetBool("isRunning", true);
             }
             else
             {
+                character.Move(move * walkSpeed * Time.deltaTime);
                 animator.SetBool("isRunning", false);
                 animator.SetBool("isWalking", true);
             }
@@ -47,6 +58,8 @@ public class PlayerController : MonoBehaviour
             animator.SetBool("isRunning", false);
         }
 
+       
+
         if(Input.GetKey(KeyCode.Space))
         {
             animator.SetTrigger("isJumping");
@@ -55,6 +68,19 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKey(KeyCode.E))
         {
             animator.SetTrigger("isDancing");
+        }
+
+        if(Input.GetKey(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.gameObject.tag == "DoorTrigger")
+        {
+            door.SetTrigger("doorIsOpen");
         }
     }
 }
