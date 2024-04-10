@@ -6,7 +6,6 @@
 //Date: 4/4/2024
 /////////////////////////////////////////////
 
-
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,15 +14,17 @@ public class PlayerController : MonoBehaviour
 {
     private Animator animator;
     private Vector3 move;
+    [SerializeField] private Transform groundCheck;
+    [SerializeField] private float groundDistance = 0.2f;
+    [SerializeField] private LayerMask groundLayer;
     private CharacterController character;
     private float runSpeed = 5;
     private float walkSpeed = 3f;
+    public float gravityValue = -30.81f;
+    private float jumpHeight = .02f;
+    private Vector3 playerVelocity;
     [SerializeField] private Animator door;
-    private float verticalVelocity;
-    private float gravity = 9.8f;
-    private float jumpForce = 5.0f;
-    private bool canJump;
-
+   
     void Start()
     {
         animator = GetComponent<Animator>();
@@ -33,46 +34,50 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float horizontalInput = Input.GetAxis("Horizontal");
+        float horizontalInput = Input.GetAxis("Horizontal"); //gets the horizontal and vertical inputs
         float verticalInput = Input.GetAxis("Vertical");
-        move = new Vector3(horizontalInput, 0, verticalInput);
+        move = new Vector3(horizontalInput, 0, verticalInput); //calculates when the player moves
 
-        if(move.magnitude > 0)
+        if(move.magnitude > 0) //if the the player is moving
         {
             if (Input.GetKey(KeyCode.LeftShift))
             {
-                character.Move(move * runSpeed * Time.deltaTime);
-                animator.SetBool("isWalking", false);
-                animator.SetBool("isRunning", true);
+                character.Move(move * runSpeed * Time.deltaTime); //when the player holds the left shift button, calculates the run speed
+                animator.SetBool("isWalking", false); //sets the walking animation to false
+                animator.SetBool("isRunning", true); //sets the running animation to true
             }
             else
             {
-                character.Move(move * walkSpeed * Time.deltaTime);
-                animator.SetBool("isRunning", false);
-                animator.SetBool("isWalking", true);
+                character.Move(move * walkSpeed * Time.deltaTime); //calculates the walk speed
+                animator.SetBool("isRunning", false); //sets the running animation to false
+                animator.SetBool("isWalking", true); //sets the walking animation to true
             }
         }
         else
         {
-            animator.SetBool("isWalking", false);
+            animator.SetBool("isWalking", false); //sets walk and run animation to false
             animator.SetBool("isRunning", false);
         }
 
-       
+        bool isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundLayer); //calculates the check if the player is grounded
 
-        if(Input.GetKey(KeyCode.Space))
+        if (Input.GetKey(KeyCode.Space) && isGrounded) //if the player presses space and is grounded
         {
-            animator.SetTrigger("isJumping");
+            playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityValue); //calculates the jump
+            animator.SetTrigger("isJumping"); //triggers the jump animation
         }
+
+        playerVelocity.y += gravityValue * Time.deltaTime; //applies the gravity
+        character.Move(playerVelocity * Time.deltaTime);// player jumps
 
         if (Input.GetKey(KeyCode.E))
         {
-            animator.SetTrigger("isDancing");
+            animator.SetTrigger("isDancing"); //when the player presses E, the dance animation is triggered
         }
 
         if(Input.GetKey(KeyCode.Escape))
         {
-            Application.Quit();
+            Application.Quit(); //if the player presses escape, the game closes
         }
     }
 
@@ -80,7 +85,7 @@ public class PlayerController : MonoBehaviour
     {
         if(other.gameObject.tag == "DoorTrigger")
         {
-            door.SetTrigger("doorIsOpen");
+            door.SetTrigger("doorIsOpen"); //when the player enters the trigger box, trigger the door open animaton.
         }
     }
 }
